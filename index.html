@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Label Generator v0.1</title>
+    <meta
+        description="How to generate SVG labels for laser cutting, with proper SVG elements and separate colors for engraving and cutting" />
+
+
+    <style>
+        /* just for showing the labels wrapping around the browser window: */
+        #root {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        #list,
+        #list * {
+            font-family: monospace;
+            margin: 0;
+            font-size: 18px;
+            border-bottom: 1px dotted red;
+        }
+    </style>
+
+</head>
+
+<body>
+    <!-- this is where we'll append our svg elements: -->
+    <div id="root"></div>
+    <div id="list"></div>
+
+
+    <script>
+
+        "use strict";
+
+        console.log("i'm alive!");
+
+        // the stuff we want to write to our labels:
+        let words = [
+            // "sim ",
+            // "não ",
+            "antena TV",
+            "farol de popa",
+            "painel solar",
+
+            "fita LED motor BB",
+            "fita LED motor EB",
+
+            "LED cockpit",
+
+            "bateria CASA",
+            "bateria MOTOR",
+            "alternador",
+            "temperatura bateria 1",
+            "temperatura bateria 2",
+            "ignição (PRE)",
+            "ignição (HEAT)",
+            "ignição (ON)",
+            "relógio motor",
+            "amperes",
+            "volts",
+            "pressão óleo",
+            "temperatura óleo",
+            "VDO ",
+            "nível diesel",
+            "resistência",
+            "buzzer",
+            "buzina",
+            "choke",
+            "luz motor PRE",
+            "luz motor ON",
+            "farol mastro 360º",
+            "foco mastro",
+            "luzes de navegação",
+            "farol BB",
+            "farol EB",
+            "USB + 12V cockpit",
+            "antena FM",
+            "antena VHF",
+            "chartplotter",
+            "bomba fundo GD",
+            "bomba fundo AUTO",
+
+
+            "bomba cozinha",
+
+            "power NM2K",
+            "raspberry",
+            "amplificador TV",
+            "TV ",
+            "rádio VHF",
+            "rádio FM",
+            "speaker BB",
+            "speaker EB",
+            "áudio IN",
+            "USB + 12V salão",
+            "ventoínha salão",
+
+            // "uma etiqueta gigante para mostrar que funciona com vários tamanhos de frase",
+            // " ",
+
+            "frigorífico",
+            "LED salão popa BB",
+            "LED salão popa EB",
+
+            "fita LED salão BB",
+            "fita LED salão EB",
+
+            "LED salão proa BB",
+            "LED salão proa EB",
+
+            "LED WC",
+            "bomba WC",
+
+            "LED quarto BB",
+            "LED quarto EB",
+            "USB + 12V quarto",
+
+            "sonda casco",
+            "_________________",
+        ];
+        // words.push();
+        // console.log(words);
+
+
+        // SETTINGS:SETTINGS:SETTINGS:SETTINGS:SETTINGS:MOSTLY :-)
+
+        let convert_to_uppercase = false;
+        // let convert_to_uppercase = true;
+
+        // to calculate widths and heights for everything:
+        // we try to - it's hard and needs small corrections depending on dimensions, probably...
+        // but a baseline of 11 works well for the hanging type (draw_triangles_and_circle = true), and 9 looks good for 'embedding'...
+        let basesize = 9;
+        // let basesize = 11;
+        // we can have two different types of labels (for wrapping around the cable of for shrinking inside cable sleeve)
+        // this is used for the words and also for the calculations for the hole+notches on the label!
+        let draw_triangles_and_circle = false;
+        // let draw_triangles_and_circle = true;
+
+        let font_width_pxs = Math.round(basesize * 1.5);
+        let font_height_pxs = Math.round(basesize * 3);
+        let y_position = Math.round(basesize * 2);
+
+        let circle_x = Math.round(font_width_pxs * 4.2);
+        let circle_radius = Math.round(font_width_pxs / 2);
+        let triangle_initial_x = Math.round(basesize * 9);
+        let triangle_initial_width = Math.round(basesize * 2);
+
+        let triangle_height = Math.round(circle_radius * 1.5);
+        let triangle_1_y = Math.round(basesize / 4);
+        let triangle_2_y = Math.round(basesize * 3.5);
+
+        console.log("basesize:", basesize, "font_width_pxs:", font_width_pxs, "font_height_pxs:", font_height_pxs, "y_position:", y_position);
+
+
+        // if we want we can changeand/or duplicate stuff here - it's an intermediate step before generating everything:
+        // to hold our final words :-)
+        let final_words = [];
+
+        // to create three labels per word, simple and with plus and minus signs attached, for example:
+        if (draw_triangles_and_circle) {
+            words.forEach(
+                function (word, index) {
+                    if (word != "") {
+                        // word = index + " | " + word;
+                        word = (index + "").padStart(3, "0") + " - -- " + word;
+                        final_words.push(word + "");
+                        final_words.push(word + " +");
+                        final_words.push(word + " —");
+                        // to double them, simply double them here:
+                        // final_words.push(word + " + ");
+                        // final_words.push(word + " — ");
+                    }
+                }
+            );
+        } else {
+            words.forEach(
+                function (word, index) {
+                    if (word != "") {
+                        // word = index + " | " + word;
+                        word = (index + "").padStart(3, "0") + "|" + word;
+                        final_words.push(word + " ");
+                        final_words.push(word + " + ");
+                        final_words.push(word + " — ");
+                        // to double them, simply double them here:
+                        // final_words.push(word + " + ");
+                        // final_words.push(word + " — ");
+                    }
+                }
+            );
+
+        }
+
+        // we can also sort everything before building our elements:
+        // final_words.sort(function (a, b) {
+        //     return a.toLowerCase().localeCompare(b.toLowerCase());
+        //     // return a.length > b.length;
+        // });
+
+
+
+        // variable for the SVG namespace 
+        const svgns = "http://www.w3.org/2000/svg";
+
+        // where we're appending the elements:
+        let div_to_append_to = document.getElementById("root");
+
+        // where we're appending the list:
+        let div_to_append_list_to = document.getElementById("list");
+
+        // we generate one element for each of our "final_words":
+        final_words.forEach(
+            function (word, index) {
+                //         console.log(index);
+                //         console.log(word);
+
+                // we calculate the necessary base width:
+                let this_length = Math.round(((word.length) * font_width_pxs) - (word.length * 2.5));
+
+                let nice_id = "label_" + index + "_" + word.replace(/[!\"#$%&'\(\)\*\+,\.\/:;<=>\ \—\?\@\[\\\]\^`\{\|\}~]/g, '_');
+
+                // we create a new SVG element:
+                let newSvg = document.createElementNS(svgns, "svg");
+                // and we give it the attributes we want:
+                // newSvg.setAttribute("x", "0");
+                // newSvg.setAttribute("y", "0");
+                newSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+                newSvg.setAttribute("id", nice_id);
+                newSvg.setAttribute("width", this_length + basesize);
+                newSvg.setAttribute("height", font_height_pxs + basesize);
+                newSvg.setAttribute("viewBox", "0 0 " + (this_length + basesize) + " " + (font_height_pxs + basesize) + "");
+
+
+                // then we create a rect to mark the cutting:
+                let newRect = document.createElementNS(svgns, "rect");
+                newRect.setAttribute("class", "cut");
+                newRect.setAttribute("x", Math.round(basesize / 2));
+                // and we give it the attributes we want:
+                newRect.setAttribute("y", Math.round(basesize / 3));
+                newRect.setAttribute("rx", Math.round(basesize * 2));
+                newRect.setAttribute("width", this_length);
+                newRect.setAttribute("height", font_height_pxs);
+                newRect.setAttribute("fill", "none");
+                newRect.setAttribute("fill", "#ffcc00");
+                newRect.setAttribute("stroke-width", "1");
+                newRect.setAttribute("stroke", "red");
+                newSvg.appendChild(newRect);
+
+                if (draw_triangles_and_circle) {
+
+                    // if we want we can generate polygons (triangles) to mark some cuttings:
+                    let newPolygon_upper = document.createElementNS(svgns, "polygon");
+                    newPolygon_upper.setAttribute("class", "cut");
+                    newPolygon_upper.setAttribute("fill", "white");
+                    newPolygon_upper.setAttribute("stroke-width", "1");
+                    newPolygon_upper.setAttribute("stroke", "red");
+                    newPolygon_upper.setAttribute("points", triangle_initial_x + "," + triangle_1_y + " " + (triangle_initial_x + triangle_initial_width) + "," + triangle_1_y + " " + (triangle_initial_x + (triangle_initial_width / 2)) + "," + triangle_height);
+                    newSvg.appendChild(newPolygon_upper);
+
+                    let newPolygon_lower = document.createElementNS(svgns, "polygon");
+                    newPolygon_lower.setAttribute("class", "cut");
+                    newPolygon_lower.setAttribute("fill", "white");
+                    newPolygon_lower.setAttribute("stroke-width", "1");
+                    newPolygon_lower.setAttribute("stroke", "red");
+                    newPolygon_lower.setAttribute("points", triangle_initial_x + "," + triangle_2_y + " " + (triangle_initial_x + triangle_initial_width) + "," + triangle_2_y + " " + (triangle_initial_x + (triangle_initial_width / 2)) + "," + (triangle_2_y - triangle_height));
+                    newSvg.appendChild(newPolygon_lower);
+
+                    // we can also generate a circle for cutting:
+                    let circle_hole = document.createElementNS(svgns, "circle");
+                    circle_hole.setAttribute("class", "cut");
+                    circle_hole.setAttribute("fill", "white");
+                    circle_hole.setAttribute("stroke-width", "1");
+                    circle_hole.setAttribute("stroke", "red");
+                    circle_hole.setAttribute("cx", circle_x);
+                    circle_hole.setAttribute("cy", Math.round(basesize * 2));
+                    circle_hole.setAttribute("r", Math.round(font_width_pxs / 2));
+                    newSvg.appendChild(circle_hole);
+                }
+
+                // then we add text:
+                let label_text_content = document.createElementNS(svgns, "text");
+                label_text_content.setAttribute("class", "engrave");
+                // we write our "word",in capitals or not:
+                // label_text_content.textContent = word.toUpperCase();
+                // label_text_content.textContent = word;
+                label_text_content.textContent = convert_to_uppercase ? word.toUpperCase() : word;
+                // and we give it the attributes we want:
+                // label_text_content.setAttribute("x", (this_length / 2) + (basesize / 2));
+                label_text_content.setAttribute("x", font_width_pxs - 2);
+                label_text_content.setAttribute("y", y_position);
+                label_text_content.setAttribute("font-family", "monospace");
+                // label_text_content.setAttribute("font-family", "Amiga");
+                // label_text_content.setAttribute("font-family", "Atari");
+                label_text_content.setAttribute("font-size", Math.round(basesize * 2) + "");
+                label_text_content.setAttribute("font-weight", "600");
+                // label_text_content.setAttribute("text-anchor", "middle");
+                label_text_content.setAttribute("text-anchor", "start");
+                // label_text_content.setAttribute("text-anchor", "end");
+                label_text_content.setAttribute("dominant-baseline", "middle");
+                // label_text_content.setAttribute("dominant-baseline", "mathematical");
+                label_text_content.setAttribute("fill", "black");
+                label_text_content.setAttribute("stroke", "none");
+                newSvg.appendChild(label_text_content);
+
+
+                // console.log(newSvg);
+
+                // then we append our newly created SVG to the selected div:
+                div_to_append_to.append(newSvg);
+
+
+
+                // to export everything (as separate image files):
+                // we get our SVGs outerHTML:
+                var svgData = newSvg.outerHTML;
+                // console.log(newSvg.outerHTML);
+                // we create a "blob" with everything inside:
+                var svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+                // and a ObjectURL, with the "blob" inside:
+                var svgUrl = URL.createObjectURL(svgBlob);
+                // and attach that ObjectURL to a newly created "a" element:
+                var downloadLink = document.createElement("a");
+                downloadLink.href = svgUrl;
+                downloadLink.download = nice_id + ".svg";
+
+                // and we append a link for it to the body of our document:
+                document.body.appendChild(downloadLink);
+
+                // IF THE NEXT LINE IS UN-COMMENTED, EVERY SVG GETS SAVED TO DISK AS A SEPERATE FILE:
+                // downloadLink.click();
+                // document.body.removeChild(downloadLink);
+
+
+            }
+        )
+
+        // and we also write a printable list:
+        words.forEach(
+            function (word, index) {
+                let this_word_el = document.createElement("p");
+                let this_word_now = document.createTextNode((index + "").padStart(2, "0") + ": " + word);
+                this_word_el.appendChild(this_word_now);
+                div_to_append_list_to.appendChild(this_word_el);
+
+
+            }
+        )
+
+        console.log("i'm finished!");
+
+
+    </script>
+</body>
+
+</html>
