@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Label Generator v0.2</title>
+    <title>Label Generator v0.1</title>
     <meta
         description="How to generate SVG labels for laser cutting, with proper SVG elements and separate colors for engraving and cutting" />
 
@@ -349,6 +349,18 @@
 
             }
         )
+
+        // to convert SVG text-to-path, using inkscape:
+        // inkscape teste_svg.svg --export-plain-svg=teste_svg_path.svg --export-text-to-path
+        // Warning: Option --export-plain-svg= is deprecated"; the changed command should be now: inkscape "$MYFILE" --export-plain-svg --export-type=svg --export-filename=temp - but not that .svg will be automatically appended to the output file name, if not already there!
+        // inkscape teste_svg.svg --export-plain-svg --export-type=svg --export-filename=teste_svg_path2 --export-text-to-path
+        // o verbs é velho... o moderno é actions!! para listar:
+        // inkscape --action-list
+
+        // para partir tudo em paths:
+        // inkscape teste_svg.svg --export-plain-svg --export-type=svg --export-filename=teste_svg_path3 --export-text-to-path --actions="select-all; object-to-path"
+        // ou mais simples ainda:
+        // inkscape teste_svg.svg --export-plain-svg --export-type=svg --export-filename=teste_svg_path4 --actions="select-all; object-to-path; fit-canvas-to-selection"
 
         console.log("i'm finished!");
 
